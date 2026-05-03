@@ -1,0 +1,88 @@
+{
+  "name": "Notificación Triaje Crítico",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "triaje-critico",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "name": "Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [250, 300],
+      "webhookId": "triaje-critico-webhook"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "string": [
+            {
+              "value1": "={{$json[\"nivel_urgencia\"]}}",
+              "operation": "equal",
+              "value2": "Crítico"
+            }
+          ]
+        }
+      },
+      "name": "Es Crítico?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [450, 300]
+    },
+    {
+      "parameters": {
+        "fromEmail": "noreply@triaje-ia.com",
+        "toEmail": "equipo.medico@hospital.com",
+        "subject": "⚠️ TRIAJE CRÍTICO - Atención Inmediata Requerida",
+        "text": "=ALERTA DE TRIAJE CRÍTICO\n\nPaciente: {{$json[\"paciente_nombre\"]}}\nDocumento: {{$json[\"paciente_documento\"]}}\nMotivo: {{$json[\"motivo_consulta\"]}}\nFecha: {{$json[\"fecha_hora\"]}}\n\nRecomendaciones IA:\n{{$json[\"recomendaciones_ia\"]}}\n\nSe requiere atención médica INMEDIATA.",
+        "options": {}
+      },
+      "name": "Enviar Email",
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 1,
+      "position": [650, 200]
+    },
+    {
+      "parameters": {
+        "chatId": "={{$env.TELEGRAM_CHAT_ID}}",
+        "text": "=🚨 *TRIAJE CRÍTICO*\n\n*Paciente:* {{$json[\"paciente_nombre\"]}}\n*Documento:* {{$json[\"paciente_documento\"]}}\n*Motivo:* {{$json[\"motivo_consulta\"]}}\n*Fecha:* {{$json[\"fecha_hora\"]}}\n\n*Recomendaciones IA:*\n{{$json[\"recomendaciones_ia\"]}}\n\n⚡ ATENCIÓN INMEDIATA REQUERIDA",
+        "options": {}
+      },
+      "name": "Enviar Telegram",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1,
+      "position": [650, 400]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={\"success\": true, \"mensaje\": \"Notificación enviada\"}"
+      },
+      "name": "Respond to Webhook",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [850, 300]
+    }
+  ],
+  "connections": {
+    "Webhook": {
+      "main": [[{"node": "Es Crítico?", "type": "main", "index": 0}]]
+    },
+    "Es Crítico?": {
+      "main": [
+        [
+          {"node": "Enviar Email", "type": "main", "index": 0},
+          {"node": "Enviar Telegram", "type": "main", "index": 0}
+        ]
+      ]
+    },
+    "Enviar Email": {
+      "main": [[{"node": "Respond to Webhook", "type": "main", "index": 0}]]
+    },
+    "Enviar Telegram": {
+      "main": [[{"node": "Respond to Webhook", "type": "main", "index": 0}]]
+    }
+  }
+}

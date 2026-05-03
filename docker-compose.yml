@@ -1,0 +1,119 @@
+version: '3.8'
+
+services:
+  # Base de datos PostgreSQL
+  postgres:
+    image: postgres:15-alpine
+    container_name: triaje_postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${DB_NAME:-triaje_db}
+      POSTGRES_USER: ${DB_USER:-triaje_user}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-triaje_pass_2024}
+      PGDATA: /var/lib/postgresql/data/pgdata
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./database/schema.sql:/docker-entrypoint-initdb.d/01-schema.sql
+      - ./database/seed_data.sql:/docker-entrypoint-initdb.d/02-seed_data.sql
+    ports:
+      - "${DB_PORT:-5432}:5432"
+    networks:
+      - triaje_network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-triaje_user} -d ${DB_NAME:-triaje_db}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # n8n - Automatización de workflows
+  n8n:
+    image: n8nio/n8n:latest
+    container_name: triaje_n8n
+    restart: unless-stopped
+    environment:
+      - DB_TYPE=postgresdb
+      - DB_POSTGRESDB_HOST=postgres
+      - DB_POSTGRESDB_PORT=5432
+      - DB_POSTGRESDB_DATABASE=${DB_NAME:-triaje_db}
+      - DB_POSTGRESDB_USER=${DB_USER:-triaje_user}
+      - DB_POSTGRESDB_PASSWORD=${DB_PASSWORD:-triaje_pass_2024}
+      - N8N_ENCRYPTION_KEY=${N8N_ENCRYPTION_KEY:-n8n-encryption-key-2024}
+      - N8N_BASIC_AUTH_ACTIVE=true
+      - N8N_BASIC_AUTH_USER=${N8N_BASIC_AUTH_USER:-admin}
+      - N8N_BASIC_AUTH_PASSWORD=${N8N_BASIC_AUTH_PASSWORD:-admin123}
+      - N8N_HOST=${N8N_HOST:-localhost}
+      - N8N_PORT=5678
+      - N8N_PROTOCOL=http
+      - WEBHOOK_URL=http://localhost:5678/
+      - GENERIC_TIMEZONE=America/Lima
+    ports:
+      - "5678:5678"
+    volumes:
+      - n8n_data:/home/node/.n8n
+      - ./n8n-workflows:/workflows
+    networks:
+      - triaje_network
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  # Frontend Streamlit
+  streamlit:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: triaje_streamlit
+    restart: unless-stopped
+    environment:
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - DB_NAME=${DB_NAME:-triaje_db}
+      - DB_USER=${DB_USER:-triaje_user}
+      - DB_PASSWORD=${DB_PASSWORD:-triaje_pass_2024}
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - HCE_API_URL=http://hce_simulator:8000
+      - N8N_WEBHOOK_URL=http://n8n:5678/webhook
+    ports:
+      - "8501:8501"
+    volumes:
+      - ./frontend:/app
+      - streamlit_cache:/root/.streamlit
+    networks:
+      - triaje_network
+    depends_on:
+      - postgres
+      - n8n
+
+  # Simulador de HCE (Historia Clínica Electrónica)
+  hce_simulator:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: triaje_hce_simulator
+    restart: unless-stopped
+    environment:
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - DB_NAME=${DB_NAME:-triaje_db}
+      - DB_USER=${DB_USER:-triaje_user}
+      - DB_PASSWORD=${DB_PASSWORD:-triaje_pass_2024}
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./backend:/app
+    networks:
+      - triaje_network
+    depends_on:
+      - postgres
+
+volumes:
+  postgres_data:
+    driver: local
+  n8n_data:
+    driver: local
+  streamlit_cache:
+    driver: local
+
+networks:
+  triaje_network:
+    driver: bridge
