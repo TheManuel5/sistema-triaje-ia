@@ -104,22 +104,23 @@ def configurar_pagina():
     """, unsafe_allow_html=True)
 
 def get_config(key, default=None):
-    """Obtiene una configuración del ambiente o retorna valor por defecto"""
+    """Obtiene una configuración del ambiente o Streamlit secrets"""
+    # Primero intentar desde Streamlit secrets
+    try:
+        return st.secrets[key]
+    except:
+        pass
+    
+    # Luego desde variables de entorno
     return os.getenv(key, default)
 # Configuraciones de la aplicación
 APP_CONFIG = {
     'DB_HOST': get_config('DB_HOST', 'localhost'),
     'DB_PORT': get_config('DB_PORT', '5432'),
-    'DB_NAME': get_config('DB_NAME', 'triaje_db'),
-    'DB_USER': get_config('DB_USER', 'triaje_user'),
-    'DB_PASSWORD': get_config('DB_PASSWORD', 'triaje_pass_2024'),
-    'OPENAI_API_KEY': get_config('OPENAI_API_KEY', ''),
-    'OPENAI_MODEL': get_config('OPENAI_MODEL', 'gpt-4-turbo-preview'),
-    'OPENAI_MAX_TOKENS': int(get_config('OPENAI_MAX_TOKENS', '2000')),
-    'OPENAI_TEMPERATURE': float(get_config('OPENAI_TEMPERATURE', '0.3')),
-        'GEMINI_API_KEY': get_config('GEMINI_API_KEY', ''),  # ← AGREGAR ESTA LÍNEA
-
-    'HCE_API_URL': get_config('HCE_API_URL', 'http://localhost:8000'),
+    'DB_NAME': get_config('DB_NAME', 'postgres'),
+    'DB_USER': get_config('DB_USER', 'postgres'),
+    'DB_PASSWORD': get_config('DB_PASSWORD', ''),
+    'GEMINI_API_KEY': get_config('GEMINI_API_KEY', ''),
     'N8N_WEBHOOK_URL': get_config('N8N_WEBHOOK_URL', 'http://localhost:5678/webhook'),
 }
 
