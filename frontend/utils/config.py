@@ -15,27 +15,7 @@ load_dotenv(env_path)
 
 def configurar_pagina():
     """Configura los parámetros de la página de Streamlit"""
-    st.set_page_config(
-        page_title="Sistema de Triaje IA",
-        page_icon="🏥",
-        layout="wide",
-        initial_sidebar_state="expanded",
-        menu_items={
-            'Get Help': 'https://docs.triaje-ia.com',
-            'Report a bug': 'https://github.com/tu-usuario/triaje-ia/issues',
-            'About': """
-            # Sistema de Triaje Clínico Asistido por IA
-            
-            Versión 1.0.0
-            
-            Sistema completo de triaje clínico con integración de IA para clasificación
-            de pacientes según nivel de urgencia.
-            
-            © 2025 - Todos los derechos reservados
-            """
-        }
-    )
-    
+
     # Estilos CSS personalizados
     st.markdown("""
         <style>

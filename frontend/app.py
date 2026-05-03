@@ -12,6 +12,14 @@ Fecha: 2025-01-01
 """
 
 import streamlit as st
+
+# ⭐ AGREGAR ESTO AQUÍ - ANTES DE CUALQUIER OTRA COSA ⭐
+st.set_page_config(
+    page_title="Sistema de Triaje IA",
+    page_icon="🏥",
+    layout="wide",
+    initial_sidebar_state="expanded"
+)
 import sys
 from pathlib import Path
 
