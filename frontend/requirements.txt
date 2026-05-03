@@ -1,13 +1,11 @@
-# Python Dependencies for Sistema de Triaje IA - Frontend
-
 # Core Framework
 streamlit==1.31.1
 
 # Database
-psycopg2-binary==2.9.9
+psycopg2-binary
 
-# OpenAI Integration
-openai==1.12.0
+# Google Gemini AI (en vez de OpenAI)
+google-genai
 
 # Data Processing
 pandas==2.2.0
@@ -15,12 +13,6 @@ numpy==1.26.3
 
 # Visualization
 plotly==5.18.0
-matplotlib==3.8.2
-seaborn==0.13.1
-
-# PDF Generation
-fpdf2==2.7.7
-reportlab==4.0.9
 
 # HTTP Requests
 requests==2.31.0
@@ -34,3 +26,9 @@ python-dateutil==2.8.2
 
 # Utilities
 pydantic==2.5.3
+
+# PDF Generation
+fpdf2==2.7.7
+reportlab==4.0.9
+
+
