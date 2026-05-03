@@ -2,14 +2,6 @@
 import sys
 sys.stdout.reconfigure(encoding='utf-8')
 
-"""
-Sistema de Triaje Clínico Asistido por IA
-Aplicación Principal - Streamlit
-
-Autor: Sistema IA
-Versión: 1.0.0
-Fecha: 2025-01-01
-"""
 
 import streamlit as st
 
